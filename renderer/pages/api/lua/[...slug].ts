@@ -2,24 +2,20 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import fs from 'fs';
 import path from 'path';
 
-const factorioRoot =
-  '/Users/hs/Library/Application Support/Steam/steamapps/common/Factorio/factorio.app/Contents/data';
-
-function findPackage(slug: string[]) {
+function findPackage(factorioCore: string, slug: string[]) {
   // for core.data / base.data
   if (slug[0] === 'core' || slug[0] === 'base') {
-    return path.join(factorioRoot, ...slug);
+    return path.join(factorioCore, ...slug);
   }
 
   const packagePaths = [
-    path.join(factorioRoot, 'base'),
-    path.join(factorioRoot, 'core'),
-    path.join(factorioRoot, 'core/lualib'),
+    path.join(factorioCore, 'base'),
+    path.join(factorioCore, 'core'),
+    path.join(factorioCore, 'core/lualib'),
   ];
   for (const root of packagePaths) {
     const testPath = path.join(root, ...slug);
     if (fs.existsSync(testPath)) {
-      console.log(testPath);
       return testPath;
     }
   }
@@ -31,7 +27,7 @@ export default (req: NextApiRequest, res: NextApiResponse) => {
     query: { slug },
   } = req;
 
-  const luaPath = findPackage(slug as string[]);
+  const luaPath = findPackage(req.cookies.corePath, slug as string[]);
   const luaCode = fs.readFileSync(luaPath);
   res.end(luaCode);
 };

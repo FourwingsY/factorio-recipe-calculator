@@ -2,6 +2,7 @@ import { app, Menu } from 'electron';
 import serve from 'electron-serve';
 import { createWindow } from './helpers';
 import { createMenu } from './menu';
+import prepareLoaders from './helpers/prepareLoaders';
 
 const isProd: boolean = process.env.NODE_ENV === 'production';
 
@@ -34,3 +35,5 @@ if (isProd) {
 app.on('window-all-closed', () => {
   app.quit();
 });
+
+prepareLoaders();
