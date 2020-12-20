@@ -9,8 +9,8 @@ export function loadCore() {
   // add deprecated function
   // math.pow is deprecated in 5.3 but factorio uses it.
   load(`\
-      function pow(a, b) return a^b end
-      math.pow = pow`)();
+    function pow(a, b) return a^b end
+    math.pow = pow`)();
 
   // load presets
   load(`require "defines"`)();
@@ -25,19 +25,23 @@ export function loadCore() {
 
   Loader.emit('@frc/loadCore/progress', 'transform');
   const transformScript = `
-      function toObject(o)
-        local object = js.new(js.global.Object)
-        for key, value in pairs(o) do
-          if type(value) == "table" then
-            object[key] = toObject(value)
-          end
-          if type(value) ~= "table" then
-            object[key] = value
-          end
+    function toObject(o)
+      local object = js.new(js.global.Object)
+      for key, value in pairs(o) do
+        if type(value) == "table" then
+          object[key] = toObject(value)
         end
-        return object
+        if type(value) ~= "table" then
+          object[key] = value
+        end
       end
-      return toObject(data.raw)
-    `;
+      return object
+    end
+    return toObject(data.raw)
+  `;
   return load(transformScript)();
+}
+
+export function loadMod() {
+  return {};
 }
