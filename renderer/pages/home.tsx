@@ -1,8 +1,7 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import Head from 'next/head';
-import electron, { Cookies, ipcRenderer } from 'electron';
-import modLoader from '../loader/modLoader';
-import { load } from 'fengari-web';
+import electron from 'electron';
+import { Loader, loadCore } from '../loader/modLoader';
 
 import {
   Card,
@@ -13,6 +12,7 @@ import {
   Button,
 } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
+import LoadingButton from '@material-ui/lab/LoadingButton';
 
 const useStyles = makeStyles({
   layout: {
@@ -34,22 +34,36 @@ const useStyles = makeStyles({
 
 const Home = () => {
   const classes = useStyles();
+  const [coreLoading, setCoreLoading] = useState(false);
+
+  // update loading
+  useEffect(() => {
+    const logger = (module: string) => {
+      console.log(module);
+    };
+    Loader.on('@frc/loadCore/progress', logger);
+    return () => void Loader.off('@frc/loadCore/progress', logger);
+  }, []);
 
   useEffect(() => {
     electron.ipcRenderer.on(
       '@frc/openCore/success',
       async (event, corePath) => {
+        // set cookie to pass corePath to lua loader
         document.cookie = `corePath=${corePath};`;
-        const data = modLoader.loadBase();
-        console.log(
-          data['underground-belt']['express-underground-belt']['icon']
-        );
+
+        // TODO: use webworker to load core
+        setCoreLoading(true);
+        const data = await loadCore();
+        setCoreLoading(false);
+
+        console.log(data.recipe);
       }
     );
   }, []);
 
-  function loadCore() {
-    ipcRenderer.send('@frc/openCore/request');
+  function openCore() {
+    electron.ipcRenderer.send('@frc/openCore/request');
   }
 
   return (
@@ -76,9 +90,14 @@ const Home = () => {
               </Typography>
             </CardContent>
             <CardActions className={classes.actions}>
-              <Button variant='contained' color='primary' onClick={loadCore}>
+              <LoadingButton
+                variant='contained'
+                color='primary'
+                onClick={openCore}
+                pending={coreLoading}
+              >
                 Load
-              </Button>
+              </LoadingButton>
             </CardActions>
           </Card>
           <Card className={classes.card}>

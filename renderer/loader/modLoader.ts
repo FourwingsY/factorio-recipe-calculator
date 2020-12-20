@@ -1,34 +1,43 @@
 import { load } from 'fengari-web';
+import { EventEmitter } from 'events';
 
-function loadBase() {
+export const Loader = new EventEmitter();
+
+export function loadCore() {
   load(`package.path = "/api/lua/?.lua;" .. package.path`)();
 
   // add deprecated function
   // math.pow is deprecated in 5.3 but factorio uses it.
   load(`\
-    function pow(a, b) return a^b end
-    math.pow = pow`)();
+      function pow(a, b) return a^b end
+      math.pow = pow`)();
 
   // load presets
   load(`require "defines"`)();
+  Loader.emit('@frc/loadCore/progress', 'dataLoader');
   load(`require "dataloader"`)();
 
   // load data
+  Loader.emit('@frc/loadCore/progress', 'core');
   load(`require "core.data"`)();
+  Loader.emit('@frc/loadCore/progress', 'base');
   load(`require "base.data"`)();
 
+  Loader.emit('@frc/loadCore/progress', 'transform');
   const transformScript = `
-    local categoryMap = {}
-    for category, items in pairs(data.raw) do
-      local itemMap = {}
-      for itemType, item in pairs(items) do
-        itemMap[itemType] = js.createproxy(item)
+      function toObject(o)
+        local object = js.new(js.global.Object)
+        for key, value in pairs(o) do
+          if type(value) == "table" then
+            object[key] = toObject(value)
+          end
+          if type(value) ~= "table" then
+            object[key] = value
+          end
+        end
+        return object
       end
-      categoryMap[category] = js.createproxy(itemMap)
-    end
-    return js.createproxy(categoryMap)
-  `;
+      return toObject(data.raw)
+    `;
   return load(transformScript)();
 }
-
-export default { loadBase };

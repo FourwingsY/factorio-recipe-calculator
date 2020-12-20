@@ -27,7 +27,11 @@ export default (req: NextApiRequest, res: NextApiResponse) => {
     query: { slug },
   } = req;
 
-  const luaPath = findPackage(req.cookies.corePath, slug as string[]);
+  const corePath = req.cookies.corePath;
+  const luaPath = findPackage(corePath, slug as string[]);
+  if (!luaPath) {
+    return res.end();
+  }
   const luaCode = fs.readFileSync(luaPath);
   res.end(luaCode);
 };
