@@ -13,7 +13,8 @@
     "@material-ui/core": "^4.11.2",
     "@material-ui/lab": "^5.0.0-alpha",
     "electron-serve": "^1.0.0",
-    "electron-store": "^6.0.1"
+    "electron-store": "^6.0.1",
+    "node-stream-zip": "^1.12.0"
   },
   "devDependencies": {
     "@babel/core": "^7.12.3",

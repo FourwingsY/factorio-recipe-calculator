@@ -28,13 +28,13 @@ const ModLoaderCard = () => {
   }, []);
 
   useEffect(() => {
-    electron.ipcRenderer.on('@frc/openMod/success', async (event, corePath) => {
-      // set cookie to pass corePath to lua loader
-      document.cookie = `corePath=${corePath};`;
+    electron.ipcRenderer.on('@frc/openMod/success', async (event, modPath) => {
+      // set cookie to pass modPath to lua loader
+      document.cookie = `modPath=${modPath};`;
 
       // TODO: use webworker to load core
       setModLoading(true);
-      const data = await loadMod();
+      const data = await loadMod(modPath);
       setModLoading(false);
 
       console.log(data);

@@ -42,6 +42,12 @@ export function loadCore() {
   return load(transformScript)();
 }
 
-export function loadMod() {
+interface ModList {
+  mods: { name: string; enabled: boolean }[];
+}
+export async function loadMod(modPath: string) {
+  const response = await fetch(`/api/load?path=${modPath}/mod-list.json`);
+  const { mods } = (await response.json()) as ModList;
+  console.log(mods);
   return {};
 }
